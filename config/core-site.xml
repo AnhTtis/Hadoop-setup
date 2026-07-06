@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <!-- HDFS default filesystem -->
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://namenode:8020</value>
+  </property>
+
+  <!-- Buffer size for I/O operations -->
+  <property>
+    <name>io.file.buffer.size</name>
+    <value>131072</value>
+  </property>
+
+  <!-- Allow all users to access HDFS via web -->
+  <property>
+    <name>hadoop.http.staticuser.user</name>
+    <value>root</value>
+  </property>
+</configuration>

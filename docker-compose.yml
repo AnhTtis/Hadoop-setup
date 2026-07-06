@@ -1,0 +1,106 @@
+version: '3.8'
+
+# Config volumes dùng chung cho tất cả services
+x-config: &config-vols
+  - ./config/hadoop-env.sh:/opt/hadoop/etc/hadoop/hadoop-env.sh
+  - ./config/core-site.xml:/opt/hadoop/etc/hadoop/core-site.xml
+  - ./config/hdfs-site.xml:/opt/hadoop/etc/hadoop/hdfs-site.xml
+  - ./config/yarn-site.xml:/opt/hadoop/etc/hadoop/yarn-site.xml
+  - ./config/mapred-site.xml:/opt/hadoop/etc/hadoop/mapred-site.xml
+
+services:
+  namenode:
+    build: .
+    container_name: namenode
+    restart: unless-stopped
+    environment:
+      - HADOOP_ROLE=namenode
+    ports:
+      - "9870:9870"   # NameNode Web UI
+      - "8020:8020"   # HDFS RPC
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+      - *config-vols
+    networks:
+      - hadoop-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9870"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  datanode:
+    build: .
+    restart: unless-stopped
+    environment:
+      - HADOOP_ROLE=datanode
+    volumes: *config-vols
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+    deploy:
+      replicas: 3
+
+  resourcemanager:
+    build: .
+    container_name: resourcemanager
+    restart: unless-stopped
+    environment:
+      - HADOOP_ROLE=resourcemanager
+    ports:
+      - "8088:8088"   # ResourceManager Web UI
+    volumes: *config-vols
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nodemanager:
+    build: .
+    restart: unless-stopped
+    environment:
+      - HADOOP_ROLE=nodemanager
+    volumes: *config-vols
+    depends_on:
+      resourcemanager:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+    deploy:
+      replicas: 3
+
+  historyserver:
+    build: .
+    container_name: historyserver
+    restart: unless-stopped
+    environment:
+      - HADOOP_ROLE=historyserver
+    ports:
+      - "8188:8188"   # Timeline Server Web UI
+      - "19888:19888" # MapReduce History Server
+    volumes:
+      - historyserver_data:/hadoop/yarn/timeline
+      - *config-vols
+    depends_on:
+      namenode:
+        condition: service_healthy
+    networks:
+      - hadoop-net
+
+volumes:
+  namenode_data:
+    driver: local
+  historyserver_data:
+    driver: local
+
+networks:
+  hadoop-net:
+    driver: bridge

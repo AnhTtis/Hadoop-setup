@@ -1,0 +1,7 @@
+Apache Hadoop là một framework phân tán mạnh mẽ
+Hadoop bao gồm HDFS để lưu trữ và MapReduce để xử lý
+HDFS là Hadoop Distributed File System
+MapReduce là mô hình lập trình để xử lý dữ liệu lớn
+YARN quản lý tài nguyên trong Hadoop cluster
+Docker giúp triển khai Hadoop dễ dàng hơn
+Big Data yêu cầu hệ thống phân tán để xử lý hiệu quả
